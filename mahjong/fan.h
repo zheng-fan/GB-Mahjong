@@ -227,13 +227,15 @@ class Fan {
 #ifdef DEBUG_DFS_CNT
             cnt_dfs = 0;
             cnt_dfs_res = 0;
-            time_dfs_s = time(NULL);
+            time_dfs_s = std::chrono::high_resolution_clock::now();
 #endif
             _dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, vis, packs, 1);
 #ifdef DEBUG_DFS_CNT
-            time_dfs_e = time(NULL);
+            time_dfs_e = std::chrono::high_resolution_clock::now();
             printf("cnt_dfs=%d, cnt_dfs_res=%d\n", cnt_dfs, cnt_dfs_res);
-            printf("time_dfs=%ld, time_count_fan=%ld\n", time_dfs_e - time_dfs_s, time_count_fan_e - time_count_fan_s);
+            printf("time_dfs=%.2fms, time_count_fan=%.2fms\n",
+                   std::chrono::duration<double, std::milli>(time_dfs_e - time_dfs_s).count(),
+                   std::chrono::duration<double, std::milli>(time_count_fan_e - time_count_fan_s).count());
 #endif
         }
         //加上花牌
@@ -1338,8 +1340,7 @@ class Fan {
     }
 #ifdef DEBUG_DFS_CNT
     int cnt_dfs, cnt_dfs_res;
-    long time_count_fan_s, time_count_fan_e;
-    long time_dfs_s, time_dfs_e;
+    std::chrono::time_point<std::chrono::high_resolution_clock> time_count_fan_s, time_count_fan_e, time_dfs_s, time_dfs_e;
 #endif
     int _dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack, std::unordered_set<long long> st) { //搜索立牌是否可以组成相应数量的面子和对子
 #ifdef DEBUG_DFS
@@ -1353,14 +1354,14 @@ class Fan {
         if (mianzi_cnt == 0 && duizi_cnt == 0) {
             if (flag_count_fan) {
 #ifdef DEBUG_DFS_CNT
-                time_count_fan_s = time(NULL);
+                time_count_fan_s = std::chrono::high_resolution_clock::now();
 #endif
                 _CountBasicFan(ht, packs, zuhelong_pack);
                 fan_packs = packs;
                 _GetMaxFan();
 #ifdef DEBUG_DFS_CNT
                 cnt_dfs_res++;
-                time_count_fan_e = time(NULL);
+                time_count_fan_e = std::chrono::high_resolution_clock::now();
 #endif
             }
             return 1;

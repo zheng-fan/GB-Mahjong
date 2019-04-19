@@ -5,7 +5,7 @@ MKDIR		:= mkdir -p
 RMDIR		:= rmdir
 SED			:= sed
 
-CXXFLAGS	:= -std=c++11 -O2
+CXXFLAGS	:= -std=c++11 -O3
 CXXDFLAGS	:= -std=c++11 -g -Wall -DDEBUG
 LDFLAGS		:= -lncursesw
 
