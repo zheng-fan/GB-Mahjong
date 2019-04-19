@@ -95,14 +95,16 @@ class Handtiles {
         lipai_table[tile.GetId()]--;
         return tile;
     }
-    int LipaiTileCount(const Tile &tile) { //立牌中某个牌的数量
-        return lipai_table[tile.GetId()];
+    int LipaiTileCount(const Tile &tile) const { //立牌中某个牌的数量
+        auto ret = lipai_table.find(tile.GetId());
+        return ret != lipai_table.end() ? ret->second : 0;
     }
-    int FuluTileCount(const Tile &tile) { //副露中某个牌的数量
-        return fulu_table[tile.GetId()];
+    int FuluTileCount(const Tile &tile) const { //副露中某个牌的数量
+        auto ret = fulu_table.find(tile.GetId());
+        return ret != fulu_table.end() ? ret->second : 0;
     }
-    int HandTileCount(const Tile &tile) { //手牌中某个牌的数量
-        return lipai_table[tile.GetId()] + fulu_table[tile.GetId()];
+    int HandTileCount(const Tile &tile) const { //手牌中某个牌的数量
+        return LipaiTileCount(tile) + FuluTileCount(tile);
     }
     int HuapaiCount() const {
         int cnt = 0;
@@ -327,7 +329,25 @@ class Handtiles {
         if (GenerateTable()) {
             return -6; //【错误】：手牌中存在数量非法的麻将牌
         }
-        SortLipaiWithoutLastOne(); //对立牌进行排序
+        //检查和牌状态是否合法
+        if (IsGang()) {     //杠状态下，
+            if (IsZimo()) { //若为自摸，则为杠上开花：手里必须有杠（更严格的话是最后一个副露必须为杠）
+                if (!any_of(fulu.begin(), fulu.end(), [](const Pack &p) -> int { return p.IsGang(); })) {
+                    return -7; //【错误】：和牌状态非法
+                }
+            } else { //若为铳和，则为抢杠和：非海底状态（能加杠说明不是海底），所和的牌必须手里没有
+                if (IsHaidi() || HandTileCount(GetLastLipai()) > 1) {
+                    return -7; //【错误】：和牌状态非法
+                }
+            }
+        }
+        if (IsJuezhang()) { //绝张状态下，立牌必须没有这张牌
+            if (LipaiTileCount(GetLastLipai()) > 1) {
+                return -7; //【错误】：和牌状态非法
+            }
+        }
+        //对立牌进行排序
+        SortLipaiWithoutLastOne();
         return 0;
     }
 

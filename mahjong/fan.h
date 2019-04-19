@@ -564,14 +564,7 @@ class Fan {
                 if (flag) { //杠不能算四归一
                     break;
                 }
-                int cnt_l = 0, cnt_f = 0;
-                if (ht.lipai_table.find(i) != ht.lipai_table.end()) {
-                    cnt_l = ht.lipai_table.find(i)->second;
-                }
-                if (ht.fulu_table.find(i) != ht.fulu_table.end()) {
-                    cnt_f = ht.fulu_table.find(i)->second;
-                }
-                if (cnt_l + cnt_f == 4) {
+                if (ht.HandTileCount(i) == 4) {
                     _AddFan(FAN_SIGUIYI, {});
                 }
             }

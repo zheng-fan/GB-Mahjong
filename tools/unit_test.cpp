@@ -133,13 +133,13 @@ void UnitTest() {
     test(0, "345s3p55p5567p[789m]4p", "[789m,1]345s3555567p4p");
     test(0, "345s3pFF5567p[789m]4p", "[789m,1]345s35567pFF4p");
     test(0, " 345 s3pFF5 567p[789m]4p ", "[789m,1]345s35567pFF4p");
-    test(0, "345s345m55567p[789m]|NE1011", "[789m,1]345m345s5556p7p|NE1011");
-    test(0, "345s345m55567p[789m]|NE1011|5", "[789m,1]345m345s5556p7p|NE1011|abcde");
-    test(0, "345s345m55567p[789m]|NE1011|cbaghd", "[789m,1]345m345s5556p7p|NE1011|cbaghd");
-    test(0, "345s[777m,3]345m55567p|NE1011|cbaghd", "[777m,3]345m345s5556p7p|NE1011|cbaghd");
-    test(0, "345s[777m,3]345m55567p|NE1011|3", "[777m,3]345m345s5556p7p|NE1011|abc");
-    test(0, "345s[777m,3]345m55567p|NE1011|0", "[777m,3]345m345s5556p7p|NE1011|");
-    test(0, "345s[777m,3]345m55567p|NE1011|8", "[777m,3]345m345s5556p7p|NE1011|abcdefgh");
+    test(0, "345s345m55567p[789m]|NE1010", "[789m,1]345m345s5556p7p|NE1010");
+    test(0, "345s345m55567p[789m]|NE1010|5", "[789m,1]345m345s5556p7p|NE1010|abcde");
+    test(0, "345s345m55567p[789m]|NE1010|cbaghd", "[789m,1]345m345s5556p7p|NE1010|cbaghd");
+    test(0, "345s[777m,3]345m55567p|NE1010|cbaghd", "[777m,3]345m345s5556p7p|NE1010|cbaghd");
+    test(0, "345s[777m,3]345m55567p|NE1010|3", "[777m,3]345m345s5556p7p|NE1010|abc");
+    test(0, "345s[777m,3]345m55567p|NE1010|0", "[777m,3]345m345s5556p7p|NE1010|");
+    test(0, "345s[777m,3]345m55567p|NE1010|8", "[777m,3]345m345s5556p7p|NE1010|abcdefgh");
     test(0, "345s3p55p5567p[7777s,1]4p", "[7777s,1]345s3555567p4p|EE0000|");
     test(0, "345s3p55p5567p[7777s,2]4p", "[7777s,2]345s3555567p4p|EE0000|");
     test(0, "345s3p55p5567p[7777s,3]4p", "[7777s,3]345s3555567p4p|EE0000|");
@@ -171,6 +171,10 @@ void UnitTest() {
     test(-5, "345s3pFFP7pC[2222m]");
     test(-6, "24s2m3pFFP5567p[2222m]");
     test(-6, "a5sghWSW[3333m,6]78m2s5s|EE0000|dca"); //花牌超过一张
+    test(-7, "[234m,1][555m,1]567m55576p|EE1001|3"); //杠状态下，杠上开花但手里无杠
+    test(-7, "[234m,1][555m,1]567m55566p|EE0001|3"); //杠状态下，抢杠和但手里有该牌
+    test(-7, "[234m,1][555m,1]567m55576p|EE0011|3"); //杠状态下，抢杠和但为海底状态
+    test(-7, "[234m,1][555m,1]567m55566p|EE0100|3"); //绝张状态，但手里有该牌
 
     test("[CCCC][FFFF][PPPP][NNNN]E ", vector<Tile>{TILE_E});
     test("19m19s19pESWNCFP ", vector<Tile>{TILE_1m, TILE_1p, TILE_1s, TILE_9m, TILE_9p, TILE_9s, TILE_E, TILE_S, TILE_W, TILE_N, TILE_C, TILE_F, TILE_P});
@@ -287,6 +291,7 @@ void UnitTest() {
     //抢杠和
     test("111999p11999s798p|EE0001", vector<fan_t>{FAN_SANANKE, FAN_QIANGGANGHU, FAN_QUANDAIYAO, FAN_MENQIANQING, FAN_SIGUIYI, FAN_SHUANGTONGKE, FAN_YAOJIUKE, FAN_YAOJIUKE, FAN_YAOJIUKE, FAN_QUEYIMEN, FAN_WUZI, FAN_KANZHANG});
     test("[111p,3]999p11999s798p|EE0001", vector<fan_t>{FAN_QIANGGANGHU, FAN_QUANDAIYAO, FAN_SIGUIYI, FAN_SHUANGTONGKE, FAN_SHUANGANKE, FAN_YAOJIUKE, FAN_YAOJIUKE, FAN_YAOJIUKE, FAN_QUEYIMEN, FAN_WUZI, FAN_KANZHANG});
+    test("[234m,1][555m,1]567m55576p|EE0101|3", vector<fan_t>{FAN_QIANGGANGHU, FAN_SIGUIYI, FAN_DUANYAO, FAN_XIXIANGFENG, FAN_LIANLIU, FAN_QUEYIMEN, FAN_HUAPAI, FAN_HUAPAI, FAN_HUAPAI});
     //妙手回春
     test("[123m,1][345m,1]567m34sCC5s|EE1110", vector<fan_t>{FAN_YISESANBUGAO, FAN_MIAOSHOUHUICHUN, FAN_HUJUEZHANG, FAN_XIXIANGFENG, FAN_QUEYIMEN});
     //海底捞月
