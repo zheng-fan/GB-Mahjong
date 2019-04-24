@@ -630,6 +630,9 @@ class Fan {
             _AddFan(FAN_SANGANG, {angang[0], minggang[0], minggang[1]});
             _AddFan(FAN_SHUANGANKE, {angang[0], anke[0]});
             break;
+        case 120:
+            _AddFan(FAN_SANGANG, {angang[0], minggang[0], minggang[1]});
+            break;
         case 202:
             _AddFan(FAN_SHUANGANGANG, angang);
             _AddFan(FAN_SIANKE, {angang[0], angang[1], anke[0], anke[1]});
