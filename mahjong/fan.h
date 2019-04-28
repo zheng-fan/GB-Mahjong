@@ -1435,52 +1435,20 @@ class Fan {
         }
         return ret;
     }
-    int _Judge2SameOrAdjacent(const Tile &a, const Tile &b) const { //判断两张牌是否相同或相邻（在a<b的情况下）
-        if (a.IsShu() && a.Suit() == b.Suit()) {
-            return a == b.Pred() || a == b;
-        } else if (a.IsZi()) {
-            return a == b;
-        }
-        return 0;
-    }
-    int _Judge3MakePack(const Tile &a, const Tile &b, const Tile &c) const { //判断三张牌是否可以组成Pack（在都是数或都是字的情况下）
-        if (a.IsShu() && b.Suit() == a.Suit() && b.Suit() == c.Suit() && b == a.Succ() && b == c.Pred()) {
-            return PACK_TYPE_SHUNZI;
-        } else if (b == a && b == c) {
-            return PACK_TYPE_KEZI;
-        }
-        return 0;
-    }
-    int _Judge2MakePack(const Tile &a, const Tile &b) const { //判断两张牌是否可以组成Pack（在都是数或都是字的情况下）
-        if (b == a) {
-            return PACK_TYPE_JIANG;
-        }
-        return 0;
-    }
-    int _JudgeZuhelong(long long bitmap) const { //判断bitmap中是否存在组合龙，若有则返回组合龙的type编号，否则返回0
-        for (int i = 1; i <= 6; i++) {
-            if ((ZuhelongBitmap[i] & bitmap) == ZuhelongBitmap[i]) {
-                return i;
-            }
-        }
-        return 0;
-    }
-    int _JudgePartOfZuhelong(long long bitmap) const { //判断bitmap中的数牌是否为某个组合龙的部分
-        bitmap &= TILE_TYPE_BITMAP_SHU;
-        for (int i = 1; i <= 6; i++) {
-            if ((ZuhelongBitmap[i] | bitmap) == ZuhelongBitmap[i]) {
-                return 1;
-            }
-        }
-        return 0;
-    }
-    int _BitCount(long long n) const { //二进制中1的个数
-        int c = 0;
-        for (c = 0; n; ++c) {
-            n &= (n - 1);
-        }
-        return c;
-    }
+    //判断两张牌是否相同或相邻（在a<b的情况下）
+    int _Judge2SameOrAdjacent(const Tile &a, const Tile &b) const;
+    //判断三张牌是否可以组成Pack（在都是数或都是字的情况下）
+    int _Judge3MakePack(const Tile &a, const Tile &b, const Tile &c) const;
+    //判断两张牌是否可以组成Pack（在都是数或都是字的情况下）
+    int _Judge2MakePack(const Tile &a, const Tile &b) const;
+
+    //判断bitmap中是否存在组合龙，若有则返回组合龙的type编号，否则返回0
+    int _JudgeZuhelong(long long bitmap) const;
+    //判断bitmap中的数牌是否为某个组合龙的部分（即数牌是否为全不靠）
+    int _JudgePartOfZuhelong(long long bitmap) const;
+
+    //二进制中1的个数
+    int _BitCount(long long n) const;
 };
 
 } // namespace mahjong

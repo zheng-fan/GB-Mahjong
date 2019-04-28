@@ -34,4 +34,53 @@ const char *FAN_NAME[] = {
     "一般高", "喜相逢", "连六", "老少副", "幺九刻", "明杠", "缺一门", "无字", "边张", "坎张", "单钓将", "自摸", "花牌",
     "明暗杠"};
 
+int Fan::_Judge2SameOrAdjacent(const Tile &a, const Tile &b) const {
+    if (a.IsShu() && a.Suit() == b.Suit()) {
+        return a == b.Pred() || a == b;
+    } else if (a.IsZi()) {
+        return a == b;
+    }
+    return 0;
+}
+int Fan::_Judge3MakePack(const Tile &a, const Tile &b, const Tile &c) const {
+    if (a.IsShu() && b.Suit() == a.Suit() && b.Suit() == c.Suit() && b == a.Succ() && b == c.Pred()) {
+        return PACK_TYPE_SHUNZI;
+    } else if (b == a && b == c) {
+        return PACK_TYPE_KEZI;
+    }
+    return 0;
+}
+int Fan::_Judge2MakePack(const Tile &a, const Tile &b) const {
+    if (b == a) {
+        return PACK_TYPE_JIANG;
+    }
+    return 0;
+}
+
+int Fan::_JudgeZuhelong(long long bitmap) const {
+    for (int i = 1; i <= 6; i++) {
+        if ((ZuhelongBitmap[i] & bitmap) == ZuhelongBitmap[i]) {
+            return i;
+        }
+    }
+    return 0;
+}
+int Fan::_JudgePartOfZuhelong(long long bitmap) const {
+    bitmap &= TILE_TYPE_BITMAP_SHU;
+    for (int i = 1; i <= 6; i++) {
+        if ((ZuhelongBitmap[i] | bitmap) == ZuhelongBitmap[i]) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int Fan::_BitCount(long long n) const {
+    int c = 0;
+    for (c = 0; n; ++c) {
+        n &= (n - 1);
+    }
+    return c;
+}
+
 } // namespace mahjong
