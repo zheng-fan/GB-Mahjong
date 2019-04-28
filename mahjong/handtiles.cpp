@@ -117,7 +117,7 @@ int Handtiles::StringToHandtiles(const std::string &s_ori) {
     if (!std::regex_match(s, pattern)) {
         return -1; //【错误】：字符串非法
     }
-    ClearAndSetDefault(); //清空
+    _ClearAndSetDefault(); //清空
     //牌从字符到编码的映射
     std::unordered_map<char, int> mp{{TILE_CHAR_WAN, TILE_1m}, {TILE_CHAR_TIAO, TILE_1s}, {TILE_CHAR_BING, TILE_1p}, {TILE_CHAR_E, TILE_E}, {TILE_CHAR_S, TILE_S}, {TILE_CHAR_W, TILE_W}, {TILE_CHAR_N, TILE_N}, {TILE_CHAR_C, TILE_C}, {TILE_CHAR_F, TILE_F}, {TILE_CHAR_P, TILE_P}, {TILE_CHAR_MEI, TILE_MEI}};
     int part = 0;         //正在处理的是副露立牌(0)、和牌情况(1)还是花牌(2)
@@ -266,7 +266,7 @@ int Handtiles::StringToHandtiles(const std::string &s_ori) {
     } else if (fulu.size() * 3 + lipai.size() != 14) {
         return -5; //【错误】：手牌张数不正确
     }
-    if (GenerateTable()) {
+    if (_GenerateTable()) {
         return -6; //【错误】：手牌中存在数量非法的麻将牌
     }
     //检查和牌状态是否合法
@@ -289,6 +289,47 @@ int Handtiles::StringToHandtiles(const std::string &s_ori) {
     //对立牌进行排序
     SortLipaiWithoutLastOne();
     return 0;
+}
+
+int Handtiles::_GenerateTable() {
+    for (auto p : fulu) {
+        std::vector<Tile> v = p.GetAllTile();
+        for (auto t : v) {
+            fulu_table[t.GetId()]++;
+        }
+    }
+    for (auto t : lipai) {
+        lipai_table[t.GetId()]++;
+    }
+    for (auto t : huapai) {
+        huapai_table[t.GetId()]++;
+    }
+    for (int i = TILE_1m; i < TILE_SIZE; i++) {
+        if (fulu_table[i] + lipai_table[i] > 4) {
+            return -1;
+        }
+    }
+    for (int i = TILE_MEI; i <= TILE_DONG; i++) {
+        if (lipai_table[i] + huapai_table[i] > 1) {
+            return -1;
+        }
+    }
+    return 0;
+}
+
+void Handtiles::_ClearAndSetDefault() {
+    fulu.clear();
+    lipai.clear();
+    huapai.clear();
+    fulu_table.clear();
+    lipai_table.clear();
+    huapai_table.clear();
+    SetQuanfeng(WIND_E);
+    SetMenfeng(WIND_E);
+    SetZimo(0);
+    SetJuezhang(0);
+    SetHaidi(0);
+    SetGang(0);
 }
 
 } // namespace mahjong
