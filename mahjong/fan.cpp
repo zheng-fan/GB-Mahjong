@@ -34,6 +34,113 @@ const char *FAN_NAME[] = {
     "一般高", "喜相逢", "连六", "老少副", "幺九刻", "明杠", "缺一门", "无字", "边张", "坎张", "单钓将", "自摸", "花牌",
     "明暗杠"};
 
+int Fan::_dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack, std::unordered_set<long long> &st) {
+#ifdef DEBUG_DFS
+    StdPrintTile(ht.GetLastLipai());
+    printf("dfs: %ld packs, duizicnt=%d,mianzicnt=%d\n", packs.size(), duizi_cnt, mianzi_cnt);
+#endif
+#ifdef DEBUG_DFS_CNT
+    _cnt_dfs++;
+#endif
+    int ret = 0;
+    if (mianzi_cnt == 0 && duizi_cnt == 0) {
+        if (flag_count_fan) {
+#ifdef DEBUG_DFS_CNT
+            _time_count_fan_s = std::chrono::high_resolution_clock::now();
+#endif
+            _CountBasicFan(ht, packs, zuhelong_pack);
+            fan_packs = packs;
+            _GetMaxFan();
+#ifdef DEBUG_DFS_CNT
+            _cnt_dfs_res++;
+            _time_count_fan_e = std::chrono::high_resolution_clock::now();
+#endif
+        }
+        return 1;
+    }
+    int start_pos = -1;
+    int n = sorted_lipai.size();
+    for (int i = 0; i < n; i++) {
+        if (vis[i] == 0) {
+            start_pos = i;
+            break;
+        }
+    }
+    if (start_pos == -1) {
+        return 0;
+    }
+    for (int i = start_pos + 1; i < n; i++) {
+        if (vis[i]) {
+            continue;
+        }
+        if (!_Judge2SameOrAdjacent(sorted_lipai[start_pos], sorted_lipai[i])) {
+            break;
+        }
+        if (duizi_cnt && _Judge2MakePack(sorted_lipai[start_pos], sorted_lipai[i])) {
+            vis[start_pos] = vis[i] = 1;
+            int offer = -(sorted_lipai[start_pos].GetDrawflag() + sorted_lipai[i].GetDrawflag()); //立牌的drawflag只可能有一个非0，所以可以+=
+            packs.push_back(Pack(PACK_TYPE_JIANG, sorted_lipai[i], 0, offer));
+            long long hashcode = _PacksHashcode(ht, packs);
+            if (st.find(hashcode) == st.end()) { //剪枝
+                st.insert(hashcode);
+#ifdef DEBUG_DFS
+                StdPrintTile(ht.GetLastLipai());
+                printf("dfs: %ld packs, duizicnt=%d, mianzicnt=%d, %d %d offer=%d\n", packs.size(), duizi_cnt, mianzi_cnt, start_pos, i, offer);
+#endif
+                ret |= _dfs_recursive(ht, sorted_lipai, mianzi_cnt, duizi_cnt - 1, vis, packs, flag_count_fan, zuhelong_pack, st);
+                if (flag_count_fan == 0 && ret) {
+                    return 1;
+                }
+            }
+            packs.erase(--packs.end());
+            vis[start_pos] = vis[i] = 0;
+        }
+        if (mianzi_cnt) {
+            for (int j = i + 1; j < n; j++) {
+                if (vis[j]) {
+                    continue;
+                }
+                if (!_Judge2SameOrAdjacent(sorted_lipai[i], sorted_lipai[j])) {
+                    break;
+                }
+                int type = _Judge3MakePack(sorted_lipai[start_pos], sorted_lipai[i], sorted_lipai[j]);
+                if (type) {
+                    vis[start_pos] = vis[i] = vis[j] = 1;
+                    int offer = -(sorted_lipai[start_pos].GetDrawflag() + sorted_lipai[i].GetDrawflag() + sorted_lipai[j].GetDrawflag()); //立牌的drawflag只可能有一个非0，所以可以+=
+                    packs.push_back(Pack(type, sorted_lipai[i], 0, offer));
+                    long long hashcode = _PacksHashcode(ht, packs);
+                    if (st.find(hashcode) == st.end()) { //剪枝
+                        st.insert(hashcode);
+#ifdef DEBUG_DFS
+                        StdPrintTile(ht.GetLastLipai());
+                        printf("dfs: %ld packs, duizicnt=%d, mianzicnt=%d, %d %d %d offer=%d\n", packs.size(), duizi_cnt, mianzi_cnt, start_pos, i, j, offer);
+#endif
+                        ret |= _dfs_recursive(ht, sorted_lipai, mianzi_cnt - 1, duizi_cnt, vis, packs, flag_count_fan, zuhelong_pack, st);
+                        if (flag_count_fan == 0 && ret) {
+                            return 1;
+                        }
+                    }
+                    packs.erase(--packs.end());
+                    vis[start_pos] = vis[i] = vis[j] = 0;
+                }
+            }
+        }
+    }
+    return ret;
+}
+long long Fan::_PacksHashcode(const Handtiles &ht, const std::vector<Pack> &packs) {
+    long long h = 0;
+    //一个Pack需要11位，5个pack最多55位
+    for (size_t i = ht.fulu.size(); i < packs.size(); i++) {
+        const Pack &p = packs[i];
+        //Middle Tile Id: 7 bits (Max Id = 44)
+        //Pack Type Id: 3 bits (Max Id = 5)
+        //Last Tile Flag: 1 bit
+        h = ((h << 7 | p.GetMiddleTile().GetId()) << 3 | p.GetType()) << 1 | (p.HaveLastTile());
+    }
+    return h;
+}
+
 int Fan::_Judge2SameOrAdjacent(const Tile &a, const Tile &b) const {
     if (a.IsShu() && a.Suit() == b.Suit()) {
         return a == b.Pred() || a == b;

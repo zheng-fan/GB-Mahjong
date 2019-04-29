@@ -1,9 +1,7 @@
 #ifndef __MAHJONG_FAN_H__
 #define __MAHJONG_FAN_H__
 
-#ifdef DEBUG
 #include "debug.h"
-#endif
 #include "handtiles.h"
 #include "pack.h"
 #include "tile.h"
@@ -225,17 +223,17 @@ class Fan {
             tot_fan_res += FAN_SCORE[FAN_ZUHELONG];
         } else {
 #ifdef DEBUG_DFS_CNT
-            cnt_dfs = 0;
-            cnt_dfs_res = 0;
-            time_dfs_s = std::chrono::high_resolution_clock::now();
+            _cnt_dfs = 0;
+            _cnt_dfs_res = 0;
+            _time_dfs_s = std::chrono::high_resolution_clock::now();
 #endif
             _dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, vis, packs, 1);
 #ifdef DEBUG_DFS_CNT
-            time_dfs_e = std::chrono::high_resolution_clock::now();
-            printf("cnt_dfs=%d, cnt_dfs_res=%d\n", cnt_dfs, cnt_dfs_res);
+            _time_dfs_e = std::chrono::high_resolution_clock::now();
+            printf("_cnt_dfs=%d, _cnt_dfs_res=%d\n", _cnt_dfs, _cnt_dfs_res);
             printf("time_dfs=%.2fms, time_count_fan=%.2fms\n",
-                   std::chrono::duration<double, std::milli>(time_dfs_e - time_dfs_s).count(),
-                   std::chrono::duration<double, std::milli>(time_count_fan_e - time_count_fan_s).count());
+                   std::chrono::duration<double, std::milli>(_time_dfs_e - _time_dfs_s).count(),
+                   std::chrono::duration<double, std::milli>(_time_count_fan_e - _time_count_fan_s).count());
 #endif
         }
         //加上花牌
@@ -254,6 +252,10 @@ class Fan {
      * 特殊情况：全不靠、七星不靠可复合组合龙；七对需判断是否连七对；无番和；七对和型也有可能组成基本和型；花牌
      */
   private:
+#ifdef DEBUG_DFS_CNT
+    int _cnt_dfs, _cnt_dfs_res;
+    std::chrono::time_point<std::chrono::high_resolution_clock> _time_count_fan_s, _time_count_fan_e, _time_dfs_s, _time_dfs_e;
+#endif
     void _AddFan(fan_t f, const std::vector<int> &v) {
         fan_table[f].push_back(v);
     }
@@ -1325,116 +1327,12 @@ class Fan {
     int _dfs(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack = Pack()) {
         std::unordered_set<long long> st; //记录当前组成的packs是否已访问过，用来剪枝
         st.clear();
-        int res = _dfs_recursive(ht, sorted_lipai, mianzi_cnt, duizi_cnt, vis, packs, flag_count_fan, zuhelong_pack, st);
-        return res;
+        return _dfs_recursive(ht, sorted_lipai, mianzi_cnt, duizi_cnt, vis, packs, flag_count_fan, zuhelong_pack, st);
     }
-    long long _PacksHashcode(const Handtiles &ht, const std::vector<Pack> &packs) {
-        long long h = 0;
-        //最多11位。5个pack最多55位。
-        for (size_t i = ht.fulu.size(); i < packs.size(); i++) {
-            const Pack &p = packs[i];
-            h = ((h << 7 | p.GetMiddleTile().GetId()) << 3 | p.GetType()) << 1 | (p.GetOffer() < 0);
-        }
-        return h;
-    }
-#ifdef DEBUG_DFS_CNT
-    int cnt_dfs, cnt_dfs_res;
-    std::chrono::time_point<std::chrono::high_resolution_clock> time_count_fan_s, time_count_fan_e, time_dfs_s, time_dfs_e;
-#endif
-    int _dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack, std::unordered_set<long long> st) { //搜索立牌是否可以组成相应数量的面子和对子
-#ifdef DEBUG_DFS
-        StdPrintTile(ht.GetLastLipai());
-        printf("dfs: %ld packs, duizicnt=%d,mianzicnt=%d\n", packs.size(), duizi_cnt, mianzi_cnt);
-#endif
-#ifdef DEBUG_DFS_CNT
-        cnt_dfs++;
-#endif
-        int ret = 0;
-        if (mianzi_cnt == 0 && duizi_cnt == 0) {
-            if (flag_count_fan) {
-#ifdef DEBUG_DFS_CNT
-                time_count_fan_s = std::chrono::high_resolution_clock::now();
-#endif
-                _CountBasicFan(ht, packs, zuhelong_pack);
-                fan_packs = packs;
-                _GetMaxFan();
-#ifdef DEBUG_DFS_CNT
-                cnt_dfs_res++;
-                time_count_fan_e = std::chrono::high_resolution_clock::now();
-#endif
-            }
-            return 1;
-        }
-        int start_pos = -1;
-        int n = sorted_lipai.size();
-        for (int i = 0; i < n; i++) {
-            if (vis[i] == 0) {
-                start_pos = i;
-                break;
-            }
-        }
-        if (start_pos == -1) {
-            return 0;
-        }
-        for (int i = start_pos + 1; i < n; i++) {
-            if (vis[i]) {
-                continue;
-            }
-            if (!_Judge2SameOrAdjacent(sorted_lipai[start_pos], sorted_lipai[i])) {
-                break;
-            }
-            if (duizi_cnt && _Judge2MakePack(sorted_lipai[start_pos], sorted_lipai[i])) {
-                vis[start_pos] = vis[i] = 1;
-                int offer = -(sorted_lipai[start_pos].GetDrawflag() + sorted_lipai[i].GetDrawflag()); //立牌的drawflag只可能有一个非0，所以可以+=
-                packs.push_back(Pack(PACK_TYPE_JIANG, sorted_lipai[i], 0, offer));
-                long long hashcode = _PacksHashcode(ht, packs);
-                if (st.find(hashcode) == st.end()) { //剪枝
-                    st.insert(hashcode);
-#ifdef DEBUG_DFS
-                    StdPrintTile(ht.GetLastLipai());
-                    printf("dfs: %ld packs, duizicnt=%d, mianzicnt=%d, %d %d offer=%d\n", packs.size(), duizi_cnt, mianzi_cnt, start_pos, i, offer);
-#endif
-                    ret |= _dfs_recursive(ht, sorted_lipai, mianzi_cnt, duizi_cnt - 1, vis, packs, flag_count_fan, zuhelong_pack, st);
-                    if (flag_count_fan == 0 && ret) {
-                        return 1;
-                    }
-                }
-                packs.erase(--packs.end());
-                vis[start_pos] = vis[i] = 0;
-            }
-            if (mianzi_cnt) {
-                for (int j = i + 1; j < n; j++) {
-                    if (vis[j]) {
-                        continue;
-                    }
-                    if (!_Judge2SameOrAdjacent(sorted_lipai[i], sorted_lipai[j])) {
-                        break;
-                    }
-                    int type = _Judge3MakePack(sorted_lipai[start_pos], sorted_lipai[i], sorted_lipai[j]);
-                    if (type) {
-                        vis[start_pos] = vis[i] = vis[j] = 1;
-                        int offer = -(sorted_lipai[start_pos].GetDrawflag() + sorted_lipai[i].GetDrawflag() + sorted_lipai[j].GetDrawflag()); //立牌的drawflag只可能有一个非0，所以可以+=
-                        packs.push_back(Pack(type, sorted_lipai[i], 0, offer));
-                        long long hashcode = _PacksHashcode(ht, packs);
-                        if (st.find(hashcode) == st.end()) { //剪枝
-                            st.insert(hashcode);
-#ifdef DEBUG_DFS
-                            StdPrintTile(ht.GetLastLipai());
-                            printf("dfs: %ld packs, duizicnt=%d, mianzicnt=%d, %d %d %d offer=%d\n", packs.size(), duizi_cnt, mianzi_cnt, start_pos, i, j, offer);
-#endif
-                            ret |= _dfs_recursive(ht, sorted_lipai, mianzi_cnt - 1, duizi_cnt, vis, packs, flag_count_fan, zuhelong_pack, st);
-                            if (flag_count_fan == 0 && ret) {
-                                return 1;
-                            }
-                        }
-                        packs.erase(--packs.end());
-                        vis[start_pos] = vis[i] = vis[j] = 0;
-                    }
-                }
-            }
-        }
-        return ret;
-    }
+    //DFS主体：搜索立牌是否可以组成相应数量的面子和对子。flag_count_fan决定是否搜索所有牌型并算番
+    int _dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack, std::unordered_set<long long> &st);
+    //生成组成的Packs的Hashcode
+    long long _PacksHashcode(const Handtiles &ht, const std::vector<Pack> &packs);
     //判断两张牌是否相同或相邻（在a<b的情况下）
     int _Judge2SameOrAdjacent(const Tile &a, const Tile &b) const;
     //判断三张牌是否可以组成Pack（在都是数或都是字的情况下）
