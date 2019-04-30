@@ -255,18 +255,24 @@ class Fan {
     int _cnt_dfs, _cnt_dfs_res;
     std::chrono::time_point<std::chrono::high_resolution_clock> _time_count_fan_s, _time_count_fan_e, _time_dfs_s, _time_dfs_e;
 #endif
+    //在 fan_table 中增加番并记录其对应的pack组合
     void _AddFan(fan_t f, const std::vector<int> &v) { fan_table[f].push_back(v); }
+    //在 excluded_fan_table 中增加番并记录其对应的pack组合（表示需要排除的番）
     void _ExcludeFan(fan_t f, const std::vector<int> &v) { excluded_fan_table[f].push_back(v); }
+    //判断 fan_table 中是否存在某个番种
     int _HasFan(fan_t f) { return !!fan_table[f].size(); }
+    //判断 excluded_fan_table 中是否存在某个番种（表示是否需要排除某个番）
     int _HasExcludedFan(fan_t f) { return !!excluded_fan_table[f].size(); }
 
-    void _CountBasicFan(const Handtiles &ht, const std::vector<Pack> &packs, const Pack &zuhelong_pack) { //基本和型算番，如果给最后一个参数，表示存在包括组合龙
+    //基本和型算番。如果给最后一个参数，表示牌型存在组合龙（但不存在packs中）
+    void _CountBasicFan(const Handtiles &ht, const std::vector<Pack> &packs, const Pack &zuhelong_pack) {
         _CountOverallAttrFan(ht, packs, zuhelong_pack);
         _CountKeGangFan(ht, packs);
         _CountAssociatedCombinationFan(ht, packs);
         _CountSinglePackFan(ht, packs);
         _CountWinModeFan(ht, packs, zuhelong_pack, CalcTing(ht));
     }
+    //取当前与之前其他牌型组合的计番结果中番数较大的保存，并清空当前计番结果
     void _GetMaxFan() {
         _FanTableExclude();
         _FanTableCount();
@@ -279,8 +285,9 @@ class Fan {
         }
         _ClearTable();
     }
-    void _FanTableExclude() { //去掉所有被exclude的番
-        //先找到都有的番，去除pack组合相同的番
+    //在fan_table中去掉所有存在于excluded_fan_table的番种（pack也相同才算相同）
+    void _FanTableExclude() {
+        //先找到都有的番，再去除pack组合相同的番
         for (int i = 1; i < FAN_SIZE; i++) {
             if (fan_table[i].size() && excluded_fan_table[i].size()) {
                 std::vector<std::vector<int>> v;
@@ -306,6 +313,7 @@ class Fan {
             }
         }
     }
+    //通过番种表计算番数，并考虑无番和的情况
     void _FanTableCount() {
         int cnt = 0;
         for (int i = 1; i < FAN_SIZE; i++) {
@@ -313,19 +321,22 @@ class Fan {
         }
         if (cnt == 0) { //无番和
             _AddFan(FAN_WUFANHU, {});
-            cnt = 8;
+            cnt = FAN_SCORE[FAN_WUFANHU];
         }
         tot_fan = cnt;
     }
+    //清空番种表：fan_table, excluded_fan_table
     void _ClearTable() {
         for (int i = 1; i < FAN_SIZE; i++) {
             fan_table[i].clear();
             excluded_fan_table[i].clear();
         }
     }
+    //清空番数结果
     void _ClearResult() {
         tot_fan_res = 0;
     }
+    //清空所有结果：番种表与番数
     void _Clear() {
         _ClearTable();
         _ClearResult();
