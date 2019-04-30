@@ -214,10 +214,9 @@ class Fan {
             sorted_lipai = ht.lipai;
         }
         std::sort(sorted_lipai.begin(), sorted_lipai.end());
-        std::vector<int> vis(14, 0);
         std::vector<Pack> packs = ht.fulu;
         if (zuhelong_bitmap && !flag_quanbukao) {
-            _dfs(ht, sorted_lipai, 1 - ht.fulu.size(), 1, vis, packs, 1, Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
+            _Dfs(ht, sorted_lipai, 1 - ht.fulu.size(), 1, packs, 1, Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
             fan_packs_res.push_back(Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
             fan_table_res[FAN_ZUHELONG].push_back({(int)(fan_packs_res.size() - 1)});
             tot_fan_res += FAN_SCORE[FAN_ZUHELONG];
@@ -227,7 +226,7 @@ class Fan {
             _cnt_dfs_res = 0;
             _time_dfs_s = std::chrono::high_resolution_clock::now();
 #endif
-            _dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, vis, packs, 1);
+            _Dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, packs, 1);
 #ifdef DEBUG_DFS_CNT
             _time_dfs_e = std::chrono::high_resolution_clock::now();
             printf("_cnt_dfs=%d, _cnt_dfs_res=%d\n", _cnt_dfs, _cnt_dfs_res);
@@ -1279,9 +1278,8 @@ class Fan {
         }
         std::vector<Tile> sorted_lipai = ht.lipai;
         std::sort(sorted_lipai.begin(), sorted_lipai.end());
-        std::vector<int> vis(14, 0);
         std::vector<Pack> packs;
-        int ret = _dfs(ht, sorted_lipai, 0, 7, vis, packs, 0);
+        int ret = _Dfs(ht, sorted_lipai, 0, 7, packs, 0);
         if (ret) {
             int flag = 1;
             for (size_t i = 1; i < packs.size(); i++) {
@@ -1301,9 +1299,8 @@ class Fan {
     int _JudgeBasicHu(const Handtiles &ht) {
         std::vector<Tile> sorted_lipai = ht.lipai;
         std::sort(sorted_lipai.begin(), sorted_lipai.end());
-        std::vector<int> vis(14, 0);
         std::vector<Pack> packs = ht.fulu;
-        return _dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, vis, packs, 0);
+        return _Dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, packs, 0);
     }
     int _JudgeZuhelongBasicHu(const Handtiles &ht) {
         std::vector<Tile> sorted_lipai;
@@ -1318,22 +1315,20 @@ class Fan {
                 }
             }
             std::sort(sorted_lipai.begin(), sorted_lipai.end());
-            std::vector<int> vis(14, 0);
             std::vector<Pack> packs = ht.fulu;
-            return _dfs(ht, sorted_lipai, 1 - ht.fulu.size(), 1, vis, packs, 0);
+            return _Dfs(ht, sorted_lipai, 1 - ht.fulu.size(), 1, packs, 0);
         }
         return 0;
     }
-    int _dfs(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack = Pack()) {
-        std::unordered_set<long long> st; //记录当前组成的packs是否已访问过，用来剪枝
-        st.clear();
-        return _dfs_recursive(ht, sorted_lipai, mianzi_cnt, duizi_cnt, vis, packs, flag_count_fan, zuhelong_pack, st);
-    }
+
+    //DFS接口
+    int _Dfs(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack = Pack());
     //DFS主体：搜索立牌是否可以组成相应数量的面子和对子。flag_count_fan决定是否搜索所有牌型并算番
-    int _dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack, std::unordered_set<long long> &st);
+    int _Dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack, std::unordered_set<long long> &st);
     //生成组成的Packs的Hashcode
     long long _PacksHashcode(const Handtiles &ht, const std::vector<Pack> &packs);
     //判断两张牌是否相同或相邻（在a<b的情况下）
+
     int _Judge2SameOrAdjacent(const Tile &a, const Tile &b) const;
     //判断三张牌是否可以组成Pack（在都是数或都是字的情况下）
     int _Judge3MakePack(const Tile &a, const Tile &b, const Tile &c) const;

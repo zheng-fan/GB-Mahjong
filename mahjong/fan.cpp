@@ -34,7 +34,13 @@ const char *FAN_NAME[] = {
     "一般高", "喜相逢", "连六", "老少副", "幺九刻", "明杠", "缺一门", "无字", "边张", "坎张", "单钓将", "自摸", "花牌",
     "明暗杠"};
 
-int Fan::_dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack, std::unordered_set<long long> &st) {
+int Fan::_Dfs(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack) {
+    std::unordered_set<long long> st; //记录当前组成的packs是否已访问过，用来剪枝
+    st.clear();
+    std::vector<int> vis(14, 0);
+    return _Dfs_recursive(ht, sorted_lipai, mianzi_cnt, duizi_cnt, vis, packs, flag_count_fan, zuhelong_pack, st);
+}
+int Fan::_Dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<int> &vis, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack, std::unordered_set<long long> &st) {
 #ifdef DEBUG_DFS
     StdPrintTile(ht.GetLastLipai());
     printf("dfs: %ld packs, duizicnt=%d,mianzicnt=%d\n", packs.size(), duizi_cnt, mianzi_cnt);
@@ -87,7 +93,7 @@ int Fan::_dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lip
                 StdPrintTile(ht.GetLastLipai());
                 printf("dfs: %ld packs, duizicnt=%d, mianzicnt=%d, %d %d offer=%d\n", packs.size(), duizi_cnt, mianzi_cnt, start_pos, i, offer);
 #endif
-                ret |= _dfs_recursive(ht, sorted_lipai, mianzi_cnt, duizi_cnt - 1, vis, packs, flag_count_fan, zuhelong_pack, st);
+                ret |= _Dfs_recursive(ht, sorted_lipai, mianzi_cnt, duizi_cnt - 1, vis, packs, flag_count_fan, zuhelong_pack, st);
                 if (flag_count_fan == 0 && ret) {
                     return 1;
                 }
@@ -115,7 +121,7 @@ int Fan::_dfs_recursive(const Handtiles &ht, const std::vector<Tile> &sorted_lip
                         StdPrintTile(ht.GetLastLipai());
                         printf("dfs: %ld packs, duizicnt=%d, mianzicnt=%d, %d %d %d offer=%d\n", packs.size(), duizi_cnt, mianzi_cnt, start_pos, i, j, offer);
 #endif
-                        ret |= _dfs_recursive(ht, sorted_lipai, mianzi_cnt - 1, duizi_cnt, vis, packs, flag_count_fan, zuhelong_pack, st);
+                        ret |= _Dfs_recursive(ht, sorted_lipai, mianzi_cnt - 1, duizi_cnt, vis, packs, flag_count_fan, zuhelong_pack, st);
                         if (flag_count_fan == 0 && ret) {
                             return 1;
                         }
