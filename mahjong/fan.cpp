@@ -34,6 +34,77 @@ const char *FAN_NAME[] = {
     "一般高", "喜相逢", "连六", "老少副", "幺九刻", "明杠", "缺一门", "无字", "边张", "坎张", "单钓将", "自摸", "花牌",
     "明暗杠"};
 
+fan_t Fan::_JudgeCompleteSpecialHu(const Handtiles &ht) {
+    if (!ht.NoFulu()) {
+        return fan_t(FAN_INVALID);
+    }
+    long long bitmap = ht.LipaiBitmap();
+    int cnt = _BitCount(bitmap);
+
+    //十三幺
+    if ((bitmap & TILE_TYPE_BITMAP_YAOJIU) == bitmap && cnt == 13) {
+        return FAN_SHISANYAO;
+    }
+    //全不靠、七星不靠
+    if (_JudgePartOfZuhelong(bitmap) && ((bitmap & TILE_TYPE_BITMAP_MEANINGFUL) == bitmap) && cnt == 14) {
+        if ((bitmap & TILE_TYPE_BITMAP_ZI) == TILE_TYPE_BITMAP_ZI) {
+            return FAN_QIXINGBUKAO;
+        } else {
+            return FAN_QUANBUKAO;
+        }
+    }
+
+    return fan_t(FAN_INVALID);
+}
+fan_t Fan::_JudgeQidui(const Handtiles &ht) {
+    if (!ht.NoFulu()) {
+        return fan_t(FAN_INVALID);
+    }
+    std::vector<Tile> sorted_lipai = ht.lipai;
+    std::sort(sorted_lipai.begin(), sorted_lipai.end());
+    std::vector<Pack> packs;
+    int ret = _Dfs(ht, sorted_lipai, 0, 7, packs, 0);
+    if (ret) {
+        int flag = 1;
+        for (size_t i = 1; i < packs.size(); i++) {
+            if (!(packs[i - 1].GetMiddleTile().Succ() == packs[i].GetMiddleTile() && packs[i - 1].GetMiddleTile().Suit() == packs[i].GetMiddleTile().Suit())) {
+                flag = 0;
+                break;
+            }
+        }
+        if (flag == 0) {
+            return FAN_QIDUI;
+        } else {
+            return FAN_LIANQIDUI;
+        }
+    }
+    return fan_t(FAN_INVALID);
+}
+int Fan::_JudgeBasicHu(const Handtiles &ht) {
+    std::vector<Tile> sorted_lipai = ht.lipai;
+    std::sort(sorted_lipai.begin(), sorted_lipai.end());
+    std::vector<Pack> packs = ht.fulu;
+    return _Dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, packs, 0);
+}
+int Fan::_JudgeZuhelongBasicHu(const Handtiles &ht) {
+    std::vector<Tile> sorted_lipai;
+    int zuhelong_bitmap = ZuhelongBitmap[_JudgeZuhelong(ht.LipaiBitmap())];
+    if (zuhelong_bitmap) {
+        long long bitmap_temp = zuhelong_bitmap;
+        for (size_t i = 0; i < ht.lipai.size(); i++) {
+            if (ht.lipai[i].GetBitmap() & bitmap_temp) {
+                bitmap_temp ^= ht.lipai[i].GetBitmap();
+            } else {
+                sorted_lipai.push_back(ht.lipai[i]);
+            }
+        }
+        std::sort(sorted_lipai.begin(), sorted_lipai.end());
+        std::vector<Pack> packs = ht.fulu;
+        return _Dfs(ht, sorted_lipai, 1 - ht.fulu.size(), 1, packs, 0);
+    }
+    return 0;
+}
+
 int Fan::_Dfs(const Handtiles &ht, const std::vector<Tile> &sorted_lipai, int mianzi_cnt, int duizi_cnt, std::vector<Pack> &packs, int flag_count_fan, const Pack &zuhelong_pack) {
     std::unordered_set<long long> st; //记录当前组成的packs是否已访问过，用来剪枝
     st.clear();
