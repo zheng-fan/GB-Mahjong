@@ -1,15 +1,7 @@
-#include <iostream>
-using namespace std;
-
-#include "console.h"
-#include "debug.h"
-#include "tile.h"
-using namespace console;
+#include "console_game.h"
 
 int main() {
-    Console con;
-    PrintMahjong(con);
-    cout << con.GetKeyboardInput();
-    // UnitTest();
+    mahjong::ConsoleGame game(mahjong::Player("fz"), mahjong::Player("AI1"), mahjong::Player("AI2"), mahjong::Player("AI3"));
+    game.Start();
     return 0;
 }

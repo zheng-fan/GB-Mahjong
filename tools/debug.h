@@ -5,7 +5,7 @@
 #include "handtiles.h"
 #include <chrono>
 
-using namespace console;
+using namespace mahjong;
 
 #define debug puts("-----")
 

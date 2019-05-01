@@ -1,4 +1,4 @@
-#include "player.h"
+#include "console_game.h"
 
 namespace mahjong {
 

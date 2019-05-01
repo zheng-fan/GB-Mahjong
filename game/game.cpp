@@ -1,4 +1,4 @@
-#include "player.h"
+#include "game.h"
 
 namespace mahjong {
 

@@ -5,6 +5,7 @@
 #include <vector>
 using std::string;
 using std::vector;
+using namespace mahjong;
 
 struct Test {
     int cnt;

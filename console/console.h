@@ -8,9 +8,8 @@
 #include <ncursesw/ncurses.h>
 #include <string>
 #include <unistd.h>
-using namespace mahjong;
 
-namespace console {
+namespace mahjong {
 
 const std::string PackToEmojiString(const Pack &p);
 const std::string TileToEmojiString(const Tile &p);
@@ -37,6 +36,6 @@ class Console {
   private:
 };
 
-} // namespace console
+} // namespace mahjong
 
 #endif

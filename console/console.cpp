@@ -1,7 +1,6 @@
 #include "console.h"
-// #include "debug.h"
 
-namespace console {
+namespace mahjong {
 
 const std::string PackToEmojiString(const Pack &p) {
     std::string ret;
@@ -76,4 +75,4 @@ const std::string TileToEmojiString(const Tile &t) {
     return std::string() + t.UTF8() + ' ';
 }
 
-} // namespace console
+} // namespace mahjong
