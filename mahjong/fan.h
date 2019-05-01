@@ -119,27 +119,35 @@ extern const char *FAN_NAME[];
 //算番器类
 class Fan {
   public:
+    /*
+     * 算番时临时存储某种牌型的计番结果信息
+     */
     std::vector<std::vector<int>> fan_table[FAN_SIZE];          //算番结果：每个番种都是一个vector，用来存放组成该番种的Pack的编号
-                                                                //若为特殊和型、整体属性类、和牌方式类，则为-1
+                                                                //若为特殊和型、整体属性类、和牌方式类，则编号为空
     std::vector<std::vector<int>> excluded_fan_table[FAN_SIZE]; //因重复计算需要排除的番种
     std::vector<Pack> fan_packs;                                //最终组合成的pack
     int tot_fan;                                                //最终的番数
 
+    /*
+     * 番数最高的计番结果信息
+     */
     std::vector<std::vector<int>> fan_table_res[FAN_SIZE];
-    // std::vector<std::vector<int>> excluded_fan_table_res[FAN_SIZE];
     std::vector<Pack> fan_packs_res;
     int tot_fan_res;
 
-    int JudgeHu(const Handtiles &ht) { //判断是否和牌
+    //判断当前是否和牌
+    int JudgeHu(const Handtiles &ht) {
         return _JudgeCompleteSpecialHu(ht) || _JudgeQidui(ht) || _JudgeBasicHu(ht) || _JudgeZuhelongBasicHu(ht);
     }
-    int JudgeHuTile(Handtiles &ht, Tile &t) { //判断使用t作为第14张牌后是否和牌
+    //判断是否和某张牌（使用t作为第14张牌后是否和牌）
+    int JudgeHuTile(Handtiles &ht, const Tile &t) {
         ht.SetTile(t);
         int ret = JudgeHu(ht);
         ht.SetTile(TILE_INVALID);
         return ret;
     }
-    std::vector<Tile> CalcTing(const Handtiles &const_ht) { //计算所听的牌
+    //计算所听的牌
+    std::vector<Tile> CalcTing(const Handtiles &const_ht) {
         Handtiles ht = const_ht;
         std::vector<Tile> ting;
         for (int i = 1; i < TILE_SIZE; i++) {
@@ -152,96 +160,6 @@ class Fan {
         ht.SetTile(TILE_INVALID);
         return ting;
     }
-    void CountFan(const Handtiles &ht) {
-        //首先清空
-        _Clear();
-        //特殊和型后算番（要记录下当前的和型），接着再进行简单和型算番
-        fan_t f;
-        f = _JudgeCompleteSpecialHu(ht);
-        int flag_quanbukao = 0;
-        if (f) { //十三幺、全不靠、七星不靠
-            flag_quanbukao = 1;
-            _AddFan(f, {});
-            _CountWinModeFan(ht, std::vector<Pack>(), Pack(), std::vector<Tile>());
-            //全不靠、七星不靠可复合组合龙
-            int zuhelong_type = _JudgeZuhelong(ht.LipaiBitmap());
-            if (zuhelong_type) {
-                fan_packs.push_back(Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
-                _AddFan(FAN_ZUHELONG, {0});
-            }
-            //由于没有进行整体属性类算番，不需要手动去除五门齐
-            // _ExcludeFan(FAN_WUMENQI, {});
-            _ExcludeFan(FAN_BUQIUREN, {});
-            _ExcludeFan(FAN_MENQIANQING, {});
-            if (ht.IsZimo()) { //必然门前清的番种自摸和牌时不计求人，只计自摸
-                fan_table[FAN_ZIMO].clear();
-                excluded_fan_table[FAN_ZIMO].clear();
-                fan_table[FAN_ZIMO].push_back({});
-            }
-            _GetMaxFan();
-        }
-        f = _JudgeQidui(ht);
-        if (f) { //七对、连七对
-            _AddFan(f, {});
-            _CountOverallAttrFan(ht, std::vector<Pack>(), Pack());
-            _CountWinModeFan(ht, std::vector<Pack>(), Pack(), std::vector<Tile>());
-            _ExcludeFan(FAN_BUQIUREN, {});
-            _ExcludeFan(FAN_MENQIANQING, {});
-            if (f == FAN_LIANQIDUI) { //需要特判连七对需要排除的番种
-                _ExcludeFan(FAN_QINGYISE, {});
-                _ExcludeFan(FAN_WUZI, {});
-            }
-            if (ht.IsZimo()) { //必然门前清的番种自摸和牌时不计求人，只计自摸
-                fan_table[FAN_ZIMO].clear();
-                excluded_fan_table[FAN_ZIMO].clear();
-                fan_table[FAN_ZIMO].push_back({});
-            }
-            _GetMaxFan();
-        }
-        std::vector<Tile> sorted_lipai;
-        int zuhelong_type = _JudgeZuhelong(ht.LipaiBitmap());
-        long long zuhelong_bitmap = ZuhelongBitmap[zuhelong_type];
-        if (zuhelong_bitmap) { //若存在组合龙则需要去掉组合龙的牌进行后面的dfs
-            long long bitmap_temp = zuhelong_bitmap;
-            for (size_t i = 0; i < ht.lipai.size(); i++) {
-                if (ht.lipai[i].GetBitmap() & bitmap_temp) {
-                    bitmap_temp ^= ht.lipai[i].GetBitmap();
-                } else {
-                    sorted_lipai.push_back(ht.lipai[i]);
-                }
-            }
-        } else {
-            sorted_lipai = ht.lipai;
-        }
-        std::sort(sorted_lipai.begin(), sorted_lipai.end());
-        std::vector<Pack> packs = ht.fulu;
-        if (zuhelong_bitmap && !flag_quanbukao) {
-            _Dfs(ht, sorted_lipai, 1 - ht.fulu.size(), 1, packs, 1, Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
-            fan_packs_res.push_back(Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
-            fan_table_res[FAN_ZUHELONG].push_back({(int)(fan_packs_res.size() - 1)});
-            tot_fan_res += FAN_SCORE[FAN_ZUHELONG];
-        } else {
-#ifdef DEBUG_DFS_CNT
-            _cnt_dfs = 0;
-            _cnt_dfs_res = 0;
-            _time_dfs_s = std::chrono::high_resolution_clock::now();
-#endif
-            _Dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, packs, 1);
-#ifdef DEBUG_DFS_CNT
-            _time_dfs_e = std::chrono::high_resolution_clock::now();
-            printf("_cnt_dfs=%d, _cnt_dfs_res=%d\n", _cnt_dfs, _cnt_dfs_res);
-            printf("time_dfs=%.2fms, time_count_fan=%.2fms\n",
-                   std::chrono::duration<double, std::milli>(_time_dfs_e - _time_dfs_s).count(),
-                   std::chrono::duration<double, std::milli>(_time_count_fan_e - _time_count_fan_s).count());
-#endif
-        }
-        //加上花牌
-        int cnt_hua = ht.HuapaiCount();
-        for (int i = 0; i < cnt_hua; i++) {
-            fan_table_res[FAN_HUAPAI].push_back({});
-        }
-        tot_fan_res += cnt_hua;
-    }
     /*
      * 番种分类：
      * 完全特殊和型（十三幺、全不靠、七星不靠）可复合：和牌方式类
@@ -250,6 +168,9 @@ class Fan {
      * 
      * 特殊情况：全不靠、七星不靠可复合组合龙；七对需判断是否连七对；无番和；七对和型也有可能组成基本和型；花牌
      */
+    //算番器入口
+    void CountFan(const Handtiles &ht);
+
   private:
 #ifdef DEBUG_DFS_CNT
     int _cnt_dfs, _cnt_dfs_res;
@@ -264,14 +185,6 @@ class Fan {
     //判断 excluded_fan_table 中是否存在某个番种（表示是否需要排除某个番）
     int _HasExcludedFan(fan_t f) { return !!excluded_fan_table[f].size(); }
 
-    //基本和型算番。如果给最后一个参数，表示牌型存在组合龙（但不存在packs中）
-    void _CountBasicFan(const Handtiles &ht, const std::vector<Pack> &packs, const Pack &zuhelong_pack) {
-        _CountOverallAttrFan(ht, packs, zuhelong_pack);
-        _CountKeGangFan(ht, packs);
-        _CountAssociatedCombinationFan(ht, packs);
-        _CountSinglePackFan(ht, packs);
-        _CountWinModeFan(ht, packs, zuhelong_pack, CalcTing(ht));
-    }
     //取当前与之前其他牌型组合的计番结果中番数较大的保存，并清空当前计番结果
     void _GetMaxFan() {
         _FanTableExclude();
@@ -342,6 +255,14 @@ class Fan {
         _ClearResult();
     }
 
+    //基本和型算番。如果给最后一个参数，表示牌型存在组合龙（但不存在packs中）
+    void _CountBasicFan(const Handtiles &ht, const std::vector<Pack> &packs, const Pack &zuhelong_pack) {
+        _CountOverallAttrFan(ht, packs, zuhelong_pack);
+        _CountKeGangFan(ht, packs);
+        _CountAssociatedCombinationFan(ht, packs);
+        _CountSinglePackFan(ht, packs);
+        _CountWinModeFan(ht, packs, zuhelong_pack, CalcTing(ht));
+    }
     /*
      * 整体属性类算番：
      * 绿一色、九莲宝灯、清幺九、字一色、混幺九、全双刻、清一色、全大、全中、全小、全带五、大于五、小于五、推不倒、碰碰和、混一色、五门齐*、全带幺、平和*、四归一*（可以多个）、断幺、缺一门、无字*

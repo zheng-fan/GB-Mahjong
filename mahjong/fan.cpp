@@ -34,6 +34,97 @@ const char *FAN_NAME[] = {
     "一般高", "喜相逢", "连六", "老少副", "幺九刻", "明杠", "缺一门", "无字", "边张", "坎张", "单钓将", "自摸", "花牌",
     "明暗杠"};
 
+void Fan::CountFan(const Handtiles &ht) {
+    //首先清空
+    _Clear();
+    //特殊和型后算番（要记录下当前的和型），接着再进行简单和型算番
+    fan_t f;
+    f = _JudgeCompleteSpecialHu(ht);
+    int flag_quanbukao = 0;
+    if (f) { //十三幺、全不靠、七星不靠
+        flag_quanbukao = 1;
+        _AddFan(f, {});
+        _CountWinModeFan(ht, std::vector<Pack>(), Pack(), std::vector<Tile>());
+        //全不靠、七星不靠可复合组合龙
+        int zuhelong_type = _JudgeZuhelong(ht.LipaiBitmap());
+        if (zuhelong_type) {
+            fan_packs.push_back(Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
+            _AddFan(FAN_ZUHELONG, {0});
+        }
+        //由于没有进行整体属性类算番，不需要手动去除五门齐
+        // _ExcludeFan(FAN_WUMENQI, {});
+        _ExcludeFan(FAN_BUQIUREN, {});
+        _ExcludeFan(FAN_MENQIANQING, {});
+        if (ht.IsZimo()) { //必然门前清的番种自摸和牌时不计求人，只计自摸
+            fan_table[FAN_ZIMO].clear();
+            excluded_fan_table[FAN_ZIMO].clear();
+            fan_table[FAN_ZIMO].push_back({});
+        }
+        _GetMaxFan();
+    }
+    f = _JudgeQidui(ht);
+    if (f) { //七对、连七对
+        _AddFan(f, {});
+        _CountOverallAttrFan(ht, std::vector<Pack>(), Pack());
+        _CountWinModeFan(ht, std::vector<Pack>(), Pack(), std::vector<Tile>());
+        _ExcludeFan(FAN_BUQIUREN, {});
+        _ExcludeFan(FAN_MENQIANQING, {});
+        if (f == FAN_LIANQIDUI) { //需要特判连七对需要排除的番种
+            _ExcludeFan(FAN_QINGYISE, {});
+            _ExcludeFan(FAN_WUZI, {});
+        }
+        if (ht.IsZimo()) { //必然门前清的番种自摸和牌时不计求人，只计自摸
+            fan_table[FAN_ZIMO].clear();
+            excluded_fan_table[FAN_ZIMO].clear();
+            fan_table[FAN_ZIMO].push_back({});
+        }
+        _GetMaxFan();
+    }
+    std::vector<Tile> sorted_lipai;
+    int zuhelong_type = _JudgeZuhelong(ht.LipaiBitmap());
+    long long zuhelong_bitmap = ZuhelongBitmap[zuhelong_type];
+    if (zuhelong_bitmap) { //若存在组合龙则需要去掉组合龙的牌进行后面的dfs
+        long long bitmap_temp = zuhelong_bitmap;
+        for (size_t i = 0; i < ht.lipai.size(); i++) {
+            if (ht.lipai[i].GetBitmap() & bitmap_temp) {
+                bitmap_temp ^= ht.lipai[i].GetBitmap();
+            } else {
+                sorted_lipai.push_back(ht.lipai[i]);
+            }
+        }
+    } else {
+        sorted_lipai = ht.lipai;
+    }
+    std::sort(sorted_lipai.begin(), sorted_lipai.end());
+    std::vector<Pack> packs = ht.fulu;
+    if (zuhelong_bitmap && !flag_quanbukao) {
+        _Dfs(ht, sorted_lipai, 1 - ht.fulu.size(), 1, packs, 1, Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
+        fan_packs_res.push_back(Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
+        fan_table_res[FAN_ZUHELONG].push_back({(int)(fan_packs_res.size() - 1)});
+        tot_fan_res += FAN_SCORE[FAN_ZUHELONG];
+    } else {
+#ifdef DEBUG_DFS_CNT
+        _cnt_dfs = 0;
+        _cnt_dfs_res = 0;
+        _time_dfs_s = std::chrono::high_resolution_clock::now();
+#endif
+        _Dfs(ht, sorted_lipai, 4 - ht.fulu.size(), 1, packs, 1);
+#ifdef DEBUG_DFS_CNT
+        _time_dfs_e = std::chrono::high_resolution_clock::now();
+        printf("_cnt_dfs=%d, _cnt_dfs_res=%d\n", _cnt_dfs, _cnt_dfs_res);
+        printf("time_dfs=%.2fms, time_count_fan=%.2fms\n",
+               std::chrono::duration<double, std::milli>(_time_dfs_e - _time_dfs_s).count(),
+               std::chrono::duration<double, std::milli>(_time_count_fan_e - _time_count_fan_s).count());
+#endif
+    }
+    //加上花牌
+    int cnt_hua = ht.HuapaiCount();
+    for (int i = 0; i < cnt_hua; i++) {
+        fan_table_res[FAN_HUAPAI].push_back({});
+    }
+    tot_fan_res += cnt_hua;
+}
+
 void Fan::_ExcludeYaojiuke(const std::vector<Pack> &packs) {
     for (size_t i = 0; i < packs.size(); i++) {
         int rank = packs[i].GetMiddleTile().Rank();
