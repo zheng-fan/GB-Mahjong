@@ -2,6 +2,7 @@
 #define __MAHJONG_BOARD_H__
 
 #include "fan.h"
+#include "player.h"
 #include "tile.h"
 
 namespace mahjong {

@@ -1,5 +1,5 @@
-#ifndef __MAHJONG_PLAYER_H__
-#define __MAHJONG_PLAYER_H__
+#ifndef __MAHJONG_HANDTILES_H__
+#define __MAHJONG_HANDTILES_H__
 
 #include "pack.h"
 #include <algorithm>

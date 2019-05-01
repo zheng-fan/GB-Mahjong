@@ -7,9 +7,9 @@ using namespace std;
 using namespace console;
 
 int main() {
-    // Console con;
-    // PrintMahjong(con);
-    // cout << con.GetKeyboardInput();
+    Console con;
+    PrintMahjong(con);
+    cout << con.GetKeyboardInput();
     // UnitTest();
     return 0;
 }
