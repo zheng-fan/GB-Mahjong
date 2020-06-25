@@ -20,12 +20,12 @@ CXXINCLUDE	:= $(patsubst %,-I%,$(subst :, ,$(VPATH)))
 Dirs		:= $(OBJDIR) $(BINDIR)
 
 Example		:= $(BINDIR)/example
-Test		:= $(BINDIR)/unit_test
+Check		:= $(BINDIR)/unit_test
 
 Objects		:= $(patsubst %.cpp, $(OBJDIR)/%.o, $(notdir $(wildcard *.cpp */*.cpp)))
 
 
-all: $(Example) $(Test)
+all: $(Example) $(Check)
 
 $(OBJDIR)/%.o: %.cpp | $(Dirs)
 	$(CXX) $(CXXFLAGS) $(CXXINCLUDE) -c $< -o $@
@@ -41,23 +41,23 @@ ifneq ($(MAKECMDGOALS),clean)
 -include $(Objects:.o=.d)
 endif
 
-$(Example):	$(filter-out $(OBJDIR)/$(subst $(BINDIR)/,,$(Test).o), $(Objects))
+$(Example):	$(filter-out $(OBJDIR)/$(subst $(BINDIR)/,,$(Check).o), $(Objects))
 	$(CXX) $(CXXFLAGS) $(CXXINCLUDE) -o $@ $^ $(LDFLAGS)
 
-$(Test):	$(filter-out $(OBJDIR)/$(subst $(BINDIR)/,,$(Example).o), $(Objects))
+$(Check):	$(filter-out $(OBJDIR)/$(subst $(BINDIR)/,,$(Example).o), $(Objects))
 	$(CXX) $(CXXFLAGS) $(CXXINCLUDE) -o $@ $^ $(LDFLAGS)
 
 $(Dirs):
 	$(MKDIR) $@
 
 debug: CXXFLAGS := $(CXXDFLAGS)
-debug: $(Example) $(Test)
+debug: $(Example) $(Check)
 
 run: $(Example)
 	$(Example)
 
-test: $(Test)
-	$(Test)
+check: $(Check)
+	$(Check)
 
 clean:
 	$(RM) $(OBJDIR)/*.o
@@ -65,9 +65,9 @@ clean:
 	$(RM) $(OBJDIR)/*.d
 	# $(RM) $(OBJDIR)/*.d.*
 	$(RM) $(Example)
-	$(RM) $(Test)
+	$(RM) $(Check)
 	-$(RMDIR) $(OBJDIR)
 	-$(RMDIR) $(BINDIR)
 	-$(RMDIR) $(BUILDDIR)
 
-.PHONY: all debug run test clean
+.PHONY: all debug run check clean
