@@ -1,11 +1,16 @@
-#include "debug.h"
 #include "fan.h"
+#include "console.h"
+#include "print.h"
 #include "tile.h"
 
 #include <vector>
 using std::string;
 using std::vector;
 using namespace mahjong;
+
+// #define DEBUG_DFS
+// #define DEBUG_ASSCOM_TABLE
+// #define DEBUG_DFS_CNT
 
 struct Test {
     int cnt;

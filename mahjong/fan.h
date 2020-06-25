@@ -1,7 +1,6 @@
 #ifndef __MAHJONG_FAN_H__
 #define __MAHJONG_FAN_H__
 
-#include "debug.h"
 #include "handtiles.h"
 #include "pack.h"
 #include "tile.h"

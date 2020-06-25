@@ -71,6 +71,7 @@ const std::string PackToEmojiString(const Pack &p) {
     }
     return ret;
 }
+
 const std::string TileToEmojiString(const Tile &t) {
     return std::string() + t.UTF8() + ' ';
 }

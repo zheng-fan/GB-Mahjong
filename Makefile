@@ -7,7 +7,7 @@ SED			:= sed
 
 CXXFLAGS	:= -std=c++11 -O3
 CXXDFLAGS	:= -std=c++11 -g -Wall
-LDFLAGS		:= -lncursesw
+LDFLAGS		:=
 
 OBJDIR		:= obj
 BINDIR		:= bin

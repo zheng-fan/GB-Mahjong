@@ -1,3 +1,4 @@
+#include <chrono>
 #include "fan.h"
 
 namespace mahjong {
