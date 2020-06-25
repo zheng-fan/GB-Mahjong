@@ -4,9 +4,14 @@
 #include "handtiles.h"
 #include "pack.h"
 #include "tile.h"
+#include <chrono>
 #include <queue>
 #include <unordered_set>
 #include <vector>
+
+// #define DEBUG_DFS
+// #define DEBUG_ASSCOM_TABLE
+// #define DEBUG_DFS_CNT
 
 namespace mahjong {
 

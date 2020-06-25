@@ -1,5 +1,7 @@
-#include <chrono>
 #include "fan.h"
+#include "console.h"
+#include "print.h"
+#include <chrono>
 
 namespace mahjong {
 

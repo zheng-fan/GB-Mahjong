@@ -8,10 +8,6 @@ using std::string;
 using std::vector;
 using namespace mahjong;
 
-// #define DEBUG_DFS
-// #define DEBUG_ASSCOM_TABLE
-// #define DEBUG_DFS_CNT
-
 struct Test {
     int cnt;
     int flag_first_test_case;
