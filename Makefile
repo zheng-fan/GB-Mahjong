@@ -12,7 +12,7 @@ LDFLAGS		:= -lncursesw
 OBJDIR		:= obj
 BINDIR		:= bin
 
-VPATH		:= console:tools:mahjong:game
+VPATH		:= console:tools:mahjong
 
 CXXINCLUDE	:= $(patsubst %,-I%,$(subst :, ,$(VPATH)))
 
