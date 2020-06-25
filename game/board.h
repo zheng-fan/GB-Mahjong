@@ -16,16 +16,26 @@ namespace mahjong {
 #define ACTION_HU 7
 #define ACTION_DISCARDTILE 8
 
-enum BOARD_STATUS {}; //牌局状态机
+enum board_status_t {
+    BOARD_STATUS_WAITING_FOR_START,
+}; //牌局状态机
 
 //牌局类
 class Board {
   public:
     Board() {}
+    void Next() {
+        switch (_status) {
+        case BOARD_STATUS_WAITING_FOR_START:
+            break;
+        default:
+            break;
+        }
+    }
 
   private:
     Fan _fan; //算番器
-    BOARD_STATUS _status;
+    board_status_t _status;
 };
 
 } // namespace mahjong
