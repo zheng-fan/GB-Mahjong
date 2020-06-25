@@ -5,7 +5,7 @@
 namespace mahjong {
 
 void StdPrintTile(const Tile &t) {
-    printf("%s ", t.UTF8());
+    printf("%s", t.UTF8());
 }
 
 void StdPrintHandtiles(Handtiles &h) {

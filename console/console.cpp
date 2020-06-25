@@ -73,7 +73,7 @@ const std::string PackToEmojiString(const Pack &p) {
 }
 
 const std::string TileToEmojiString(const Tile &t) {
-    return std::string() + t.UTF8() + ' ';
+    return std::string() + t.UTF8();
 }
 
 } // namespace mahjong
