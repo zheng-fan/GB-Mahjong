@@ -1,5 +1,5 @@
-#include "fan.h"
 #include "console.h"
+#include "fan.h"
 #include "print.h"
 #include "tile.h"
 
