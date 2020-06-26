@@ -254,12 +254,6 @@ int Handtiles::StringToHandtiles(const std::string &s_ori) {
         SetHaidi(nums[2] - '0');
         SetGang(nums[3] - '0');
     }
-    //设置最后一张牌的摸牌状态，用于算番
-    if (IsZimo()) {
-        LastLipai().SetZimo();
-    } else {
-        LastLipai().SetChonghu();
-    }
     //检查手牌张数是否为14或13（副露都算3张）
     if (fulu.size() * 3 + lipai.size() == 13) {
         lipai.push_back(Tile(TILE_INVALID)); //如果是13张则加一张占位牌
@@ -268,6 +262,12 @@ int Handtiles::StringToHandtiles(const std::string &s_ori) {
     }
     if (_GenerateTable()) {
         return -6; //【错误】：手牌中存在数量非法的麻将牌
+    }
+    //设置最后一张牌的摸牌状态，用于算番
+    if (IsZimo()) {
+        LastLipai().SetZimo();
+    } else {
+        LastLipai().SetChonghu();
     }
     //检查和牌状态是否合法
     if (IsGang()) {     //杠状态下，
