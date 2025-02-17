@@ -4,6 +4,7 @@
 #include "tile.h"
 
 #include <vector>
+#include <cstring>
 using std::string;
 using std::vector;
 using namespace mahjong;
