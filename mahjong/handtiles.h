@@ -47,17 +47,14 @@ class Handtiles {
     void DrawTile(const Tile &tile) { //抓牌（自摸牌）
         SetLastLipai(tile);
         LastLipai().SetZimo();
-        lipai_table[tile.GetId()]++;
     }
     void SetTile(const Tile &tile) { //抓牌（铳和牌）
         SetLastLipai(tile);
         LastLipai().SetChonghu();
-        lipai_table[tile.GetId()]++;
     }
     Tile DiscardTile() { //出牌
         Tile tile(GetLastLipai().GetId());
         SetLastLipai(Tile(TILE_INVALID));
-        lipai_table[tile.GetId()]--;
         return tile;
     }
 
@@ -92,7 +89,7 @@ class Handtiles {
     //判断是否没有副露（暗杠也没有）
     int NoFulu() const { return fulu.size() == 0; }
 
-    void SetLastLipai(const Tile &t) { lipai[lipai.size() - 1] = t; }
+    void SetLastLipai(const Tile &t) { lipai_table[LastLipai().GetId()]--; lipai[lipai.size() - 1] = t; lipai_table[t.GetId()]++;}
     Tile &LastLipai() { return lipai[lipai.size() - 1]; }
     const Tile &GetLastLipai() const { return lipai[lipai.size() - 1]; }
 
