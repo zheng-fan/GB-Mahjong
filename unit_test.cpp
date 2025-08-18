@@ -344,6 +344,9 @@ void UnitTest() {
     //独听的处理
     test("[NNN,3]77789m11888p7m|EE0000|", vector<fan_t>{FAN_SIGUIYI, FAN_SHUANGANKE, FAN_YAOJIUKE, FAN_QUEYIMEN});
     test("[NNN,3]78889m11888p8m|EE0000|", vector<fan_t>{FAN_SIGUIYI, FAN_SHUANGTONGKE, FAN_SHUANGANKE, FAN_YAOJIUKE, FAN_QUEYIMEN});
+
+    //杠与四归一的处理
+    test("[1111m][222s,1]78999s44p9s", vector<fan_t>{FAN_SIGUIYI, FAN_SHUANGANKE, FAN_ANGANG, FAN_YAOJIUKE, FAN_YAOJIUKE, FAN_WUZI});
 }
 
 int main() {
