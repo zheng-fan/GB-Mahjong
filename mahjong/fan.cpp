@@ -346,7 +346,7 @@ void Fan::_CountOverallAttrFan(const Handtiles &ht, const std::vector<Pack> &pac
                 }
             }
             if (flag) { //杠不能算四归一
-                break;
+                continue;
             }
             if (ht.HandTileCount(i) == 4) {
                 _AddFan(FAN_SIGUIYI, {});
