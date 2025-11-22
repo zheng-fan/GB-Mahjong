@@ -347,6 +347,9 @@ void UnitTest() {
 
     //杠与四归一的处理
     test("[1111m][222s,1]78999s44p9s", vector<fan_t>{FAN_SIGUIYI, FAN_SHUANGANKE, FAN_ANGANG, FAN_YAOJIUKE, FAN_YAOJIUKE, FAN_WUZI});
+
+    //副露顺序在三色双龙会的处理
+    test("[123p,3]55m12379s789p8s", vector<fan_t>{FAN_SANSESHUANGLONGHUI, FAN_KANZHANG});
 }
 
 int main() {
