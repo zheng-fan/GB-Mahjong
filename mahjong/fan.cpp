@@ -567,7 +567,7 @@ void Fan::_CountAssociatedCombinationFan(const Handtiles &ht, const std::vector<
             int suit_jiang = packs[jiang_id[0]].GetMiddleTile().Suit();
             if (suit_123_1 == suit_123_2 && suit_123_1 == suit_789_1 && suit_123_1 == suit_789_2 && suit_123_1 == suit_jiang) {
                 _StoreFan(e, FAN_YISESHUANGLONGHUI, {shunzi_123[0], shunzi_123[1], shunzi_789[0], shunzi_789[1], jiang_id[0]});
-            } else if (suit_123_1 == suit_789_1 && suit_123_2 == suit_789_2 &&
+            } else if ((suit_123_1 == suit_789_1 && suit_123_2 == suit_789_2 || suit_123_1 == suit_789_2 && suit_123_2 == suit_789_1) &&
                        suit_123_1 != suit_123_2 && suit_123_1 != suit_jiang && suit_123_2 != suit_jiang)
                 _StoreFan(e, FAN_SANSESHUANGLONGHUI, {shunzi_123[0], shunzi_123[1], shunzi_789[0], shunzi_789[1], jiang_id[0]});
         }
