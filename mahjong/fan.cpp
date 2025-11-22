@@ -102,6 +102,12 @@ void Fan::CountFan(const Handtiles &ht) {
     std::vector<Pack> packs = ht.fulu;
     if (zuhelong_bitmap && !flag_quanbukao) {
         _Dfs(ht, sorted_lipai, 1 - ht.fulu.size(), 1, packs, 1, Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
+        //由于是先正常算番，完全算完后才把组合龙加上，所以这里如果是无番和，需要先清空
+        if (tot_fan_res == FAN_SCORE[FAN_WUFANHU] && fan_table_res[FAN_WUFANHU].size() == 1) {
+            fan_table_res[FAN_WUFANHU].clear();
+            tot_fan_res = 0;
+            //fan_packs_res可以不清空
+        }
         fan_packs_res.push_back(Pack(PACK_TYPE_ZUHELONG, Tile(), zuhelong_type));
         fan_table_res[FAN_ZUHELONG].push_back({(int)(fan_packs_res.size() - 1)});
         tot_fan_res += FAN_SCORE[FAN_ZUHELONG];
