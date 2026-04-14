@@ -151,13 +151,12 @@ class Fan {
         return ret;
     }
     //计算所听的牌
-    std::vector<Tile> CalcTing(const Handtiles &const_ht) {
+    std::vector<Tile> CalcTing(const Handtiles &const_ht, bool include_exhausted_tile = false) {
         Handtiles ht = const_ht;
         std::vector<Tile> ting;
         for (int i = 1; i < TILE_SIZE; i++) {
             ht.SetTile(i);
-            // if (JudgeHu(ht)) {
-            if (JudgeHu(ht) && ht.HandTileCount(i) != 5) { //去掉加上这张牌后立牌中有5张的情况
+            if (JudgeHu(ht) && (include_exhausted_tile || ht.HandTileCount(i) != 5)) {
                 ting.push_back(i);
             }
         }
@@ -265,7 +264,8 @@ class Fan {
         _CountKeGangFan(ht, packs);
         _CountAssociatedCombinationFan(ht, packs);
         _CountSinglePackFan(ht, packs);
-        _CountWinModeFan(ht, packs, zuhelong_pack, CalcTing(ht));
+        // 边张、坎张、单钓将按“形式听牌”判断，多面听（即使部分牌已用尽）不计这三项。
+        _CountWinModeFan(ht, packs, zuhelong_pack, CalcTing(ht, true));
     }
     /*
      * 整体属性类算番：
